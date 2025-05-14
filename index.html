@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=0.395, maximum-scale=0.395, user-scalable=no">
+    <title>HTML Editor</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+        
+        html {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+            overscroll-behavior-y: none;
+            overscroll-behavior: contain;
+            font-family: monospace;
+        }
+        
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
+        h1 {
+            white-space: nowrap;
+        }
+        
+        label {
+            white-space: nowrap;
+        }
+        
+        .unselectable {
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 20px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        
+        button:hover {
+            background-color: #444;
+        }
+        
+        .button-large {
+            padding: 30px;
+            white-space: nowrap;
+        }
+        
+        #top-section {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            transform: translateY(-1px);
+            padding: 0 10px;
+            padding-top: 10px;
+            background-color: rgba(00, 00, 00, 0.8);
+            z-index: 1;
+        }
+        
+        .heading-button {
+            width: 28%;
+            padding: 10px;
+            font-size: 20px;
+            white-space: nowrap;
+        }
+        
+        #heading-button-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        .settings {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            width: 30%;
+            font-size: 20px;
+        }
+        
+        .settings-button {
+            width: fit-content;
+        }
+        
+        #preview-window {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #fff;
+        }
+        
+        #preview-window-container {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            margin-bottom: 10px;
+        }
+        
+        #console-window {
+            display: none;
+            position: relative;
+            width: 20%;
+            height: 100%;
+            padding: 0px;
+            color: #fff;
+            background-color: #000;
+            outline: 5px inset #aaa;
+            outline-offset: -5px;
+            overflow: auto;
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+        
+        #console-fade {
+            position: sticky;
+            top: 4.5px;
+            left: 6px;
+            width: calc(100% - 12px);
+            height: 40px;
+            background-image: linear-gradient(to bottom, black, transparent);
+            background-position: 0 0;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            z-index: 1;
+        }
+        
+        #console-window-header {
+            margin: 0;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        #console-log-message {
+            margin-top: 0;
+            padding: 0 10px;
+            color: #ddd;
+        }
+        
+        textarea {
+            font-size: 20px;
+            border: 4px solid #222;
+            border-radius: 5px;
+            resize: none;
+            background-color: #151515;
+            color: #fff;
+            -webkit-text-size-adjust: none;
+        }
+        
+        #code-container {
+            height: 100%;
+        }
+        
+        #code {
+            width: 100%;
+            height: 100%;
+            min-height: 180px;
+            white-space: pre;
+            overflow-wrap: normal;
+            word-wrap: normal;
+            text-shadow: none;
+        }
+        
+        #code.wrapped {
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+        
+        #background-image {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 5px;
+            object-fit: cover;
+            image-rendering: pixelated; 
+            image-rendering: crisp-edges;
+            image-rendering: optimizeSpeed;
+            filter: brightness(0.5);
+            z-index: -1;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 20px;
+            font-family: monospace;
+            background-color: #151515;
+            color: #fff;
+            border: 3px solid #222;
+            border-radius: 5px;
+        }
+        
+        .code-button {
+            width: 90px;
+            height: 70px;
+            font-size: 20px;
+            background-color: rgba(50, 50, 50, 0.9);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 3px 3px 10px #000;
+        }
+        
+        .code-button:hover {
+            background-color: #333;
+        }
+        
+        .code-button:active {
+            transform: scale(0.9);
+        }
+        
+        #hide-keyboard-button {
+            width: 185px;
+            display: none;
+        }
+        
+        #hide-keyboard-button.visible {
+            display: inline-block;
+        }
+        
+        #hide-keyboard-button.showing {
+            display: inline-block;
+            animation: grow 0.2s both;
+        }
+        
+        #hide-keyboard-button.hiding {
+            display: inline-block;
+            animation: shrink 0.2s both;
+        }
+        
+        .code-button-container {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+        }
+        
+        #export {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+        }
+        
+        #editor-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 0 30px;
+            margin-bottom: 10px;
+            gap: 15px;
+            position: relative;
+        }
+        
+        .menu-window {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 15px;
+            color: #fff;
+            background-color: #333;
+            border-radius: 5px;
+            box-shadow: 0 0 10px #000;
+            z-index: 1;
+        }
+        
+        .menu-window .menu-header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            width: 100%;
+        }
+        
+        .menu-window .menu-item {
+            background-color: #555;
+            width: fit-content;
+            padding: 10px;
+            cursor: pointer;
+        }
+        
+        #file-cabinet {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-height: 100%;
+            overflow-y: auto;
+            font-size: 15px;
+            white-space: nowrap;
+            pointer-events: none;
+            transition: opacity 0.1s ease-in-out;
+        }
+        
+        #file-cabinet.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        #theme-settings-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            width: fit-content;
+        }
+        
+        .theme-settings {
+            background-color: #222;
+            border: 2px solid #555;
+            color: #fff;
+            font-size: 20px;
+            height: fit-content;
+            width: fit-content;
+            padding: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        #background-select {
+            width: 40%;
+            min-width: 300px;
+        }
+        
+        .menu-buttons-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-evenly;
+            width: 100%;
+            padding: 10px 0;
+            background-color: #222;
+            border: 2px solid #555;
+        }
+        
+        #file-list {
+            list-style: none;
+            min-height: 65px;
+            margin: 0;
+            padding: 0px;
+            font-size: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-auto-rows: minmax(min-content, max-content);
+            overflow-y: auto;
+            white-space: nowrap;
+        }
+        
+        #file-list li {
+            padding: 20px;
+            border-bottom: 1px solid #444;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        #file-list li:hover {
+            background-color: #444;
+        }
+        
+        #file-list li.selected {
+            background-color: #555;
+            color: #fff;
+        }
+        
+        #file-list li.modified {
+            background-color: #f55;
+            color: #fff;
+        }
+        
+        #file-list li.unsaved {
+            outline: 2px solid red;
+            outline-offset: -5px;
+        }
+        
+        #file-list li.starred {
+            outline: 2px solid gold;
+            outline-offset: -5px;
+        }
+        
+        #rename-input {
+            height: 1.5em;
+            padding: 5px;
+            background-color: #222;
+            border: none;
+        }
+        
+        #data-migration-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #migration-window {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-height: 100%;
+            overflow-y: auto;
+            font-size: 15px;
+            white-space: nowrap;
+            pointer-events: none;
+            transition: opacity 0.1s ease-in-out;
+        }
+        
+        #migration-window.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        #migration-list {
+            list-style: none;
+            min-height: 65px;
+            margin: 0;
+            padding: 0px;
+            font-size: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-auto-rows: minmax(min-content, max-content);
+            overflow-y: auto;
+            white-space: nowrap;
+        }
+        
+        #migration-list input[type="checkbox"] {
+            display: none;
+        }
+        
+        #migration-list li {
+            padding: 20px;
+            border-bottom: 1px solid #444;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        #migration-list li.selected {
+            background-color: #88f;
+        }
+        
+        #migration-list li.overwrite {
+            background-color: #c95;
+        }
+        
+        .vert-resize-handle {
+            position: relative;
+            width: 100%;
+            min-height: 40px;
+            background-color: #666;
+        }
+        
+        .vert-resize-handle:hover {
+            background-color: #666;
+        }
+        
+        .vert-resize-handle::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 70%;
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease;
+        }
+        
+        .vert-resize-handle.active {
+            transform: none;
+        }
+        
+        .vert-resize-handle.active::before {
+            transform: translate(-50%, -50%) scaleX(0.9);
+        }
+        
+        .active {
+            transform: scale(0.9);
+        }
+        
+        .nohover:hover {
+            background-color: #333;
+        }
+        
+        .redhover:hover {
+            background-color: #400;
+        }
+        
+        .greenhover:hover {
+            background-color: #040;
+        }
+        
+        .bluehover:hover {
+            background-color: #004;
+        }
+        
+        .rainbow-text {
+            background: linear-gradient(to right, 
+            #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000);
+            background-size: 400% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 20s linear infinite;
+        }
+        
+        @keyframes rainbow {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 400% 0;
+            }
+        }
+        
+        @keyframes grow {
+            0% {
+                transform: scale(0);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes shrink {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="top-section" class="unselectable">
+        <h1 id="title">HTML Editor</h1>
+        <div id="heading-button-container">
+            <button id="file-button" class="heading-button">File</button>
+            <button id="new-window-button" class="heading-button">New Window</button>
+            <button id="clear-button" class="heading-button">Clear</button>
+        </div>
+        <div class="settings">
+            <button id="wrap-toggle-button" class="settings-button nohover">
+                <label><input type="checkbox" id="wrap-toggle"> Wrap Text</label>
+            </button>
+            <button id="preview-toggle-button" class="settings-button nohover">
+                <label><input type="checkbox" id="preview-toggle"> Preview</label>
+            </button>
+        </div>
+    </div>
+    <div id="preview-window-container">
+        <div style="display: flex; flex-direction: row; height: 100%;">
+            <iframe id="preview-window" frameborder="0"></iframe>
+            <div id="console-window"></div>
+        </div>
+        <button id="preview-resize" class="vert-resize-handle"></button>
+    </div>
+    <div id="editor-container">
+        <div style="position: relative; height: 100%;">
+            <div id="code-container">
+                <img id="background-image" src="" />
+                <textarea id="code" placeholder="Input your HTML page here..." autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="code-button-container unselectable" style="position: absolute; right: 15px; top: 15px;">
+                <button id="hide-keyboard-button" class="code-button nohover">Hide Keyboard</button>
+            </div>
+            <div class="code-button-container unselectable" style="position: absolute; bottom: 15px; right: 15px;">
+                <button id="undo-button" class="code-button nohover">Undo</button>
+                <button id="redo-button" class="code-button nohover">Redo</button>
+                <button id="select-button" class="code-button nohover">Select</button>
+                <button id="copy-button" class="code-button nohover">Copy</button>
+            </div>
+            <div id="file-cabinet" class="menu-window unselectable">
+                <div id="file-menu-header" class="menu-header">
+                    <h1>Files</h1>
+                    <div id="theme-settings-container">
+                        <div class="settings theme-settings">
+                            <button">
+                                <label><input type="checkbox" id="shade-toggle"> Shaded</label>
+                            </button>
+                        </div>
+                        <select id="background-select" class="theme-settings">
+                            <option value="" disabled selected hidden>Choose a theme</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="menu-buttons-container">
+                    <button id="save-file" class="menu-item greenhover">Save</button>
+                    <button id="rename-file" class="menu-item bluehover">Rename</button>
+                    <button id="delete-file" class="menu-item redhover">Delete</button>
+                </div>
+                <ul id="file-list"></ul>
+                <div class="menu-buttons-container">
+                    <h3>Data Migration</h3>
+                    <div id="data-migration-container">
+                        <button id="import-button" class="menu-item bluehover" onclick="importFiles()">Import</button>
+                        <button id="export-button" class="menu-item redhover" onclick="exportFiles()">Export</button>
+                    </div>
+                </div>
+            </div>
+            <div id="migration-window" class="menu-window unselectable">
+                <div id="migration-window-header" class="menu-header">
+                    <h1 id="migration-title">Migrate Files</h1>
+                    <button id="selection-toggle" class="menu-item">Select All</button>
+                </div>
+                <ul id="migration-list"></ul>
+                <div class="menu-buttons-container">
+                    <button id="migration-confirm-button" class="menu-item">Confirm</button>
+                </div>
+            </div>
+        </div>
+        <input type="text" id="filename" placeholder="Enter filename (e.g., mypage.html)">
+        <div id="export" class="unselectable">
+            <button class="button-large nohover" onclick="openFile()">Open HTML File</button>
+            <button class="button-large nohover" onclick="downloadFile()">Download HTML File</button>
+            <button class="button-large nohover" onclick="previewInNewTab()">Preview in New Tab</button>
+        </div>
+    </div>
+    <script>
+        const previewToggle = document.getElementById('preview-toggle');
+        const previewToggleButton = document.getElementById('preview-toggle-button');
+        const previewWindow = document.getElementById('preview-window');
+        const consoleWindow = document.getElementById('console-window');
+        const codeEditor = document.getElementById('code');
+        const filenameInput = document.getElementById('filename');
+        const previewWindowContainer = document.getElementById('preview-window-container');
+        const previewResize = document.getElementById('preview-resize');
+        const undoButton = document.getElementById('undo-button');
+        const redoButton = document.getElementById('redo-button');
+        const selectButton = document.getElementById('select-button');
+        const copyButton = document.getElementById('copy-button');
+        const hideKeyboardButton = document.getElementById('hide-keyboard-button');
+        const wrapToggle = document.getElementById('wrap-toggle');
+        const fileCabinet = document.getElementById('file-cabinet');
+        const fileButton = document.getElementById('file-button');
+        const fileList = document.getElementById('file-list');
+        const saveFileButton = document.getElementById('save-file');
+        const deleteFileButton = document.getElementById('delete-file');
+        const renameFileButton = document.getElementById('rename-file');
+        const tempFilename = null;
+        const tempSuffix = ' (unsaved)';
+        const starPrefix = '*';
+        const fileHistory = {};
+        const exportButton = document.getElementById('export-button');
+        const importButton = document.getElementById('import-button');
+        const migrationWindow = document.getElementById('migration-window');
+        const selectionToggle = document.getElementById('selection-toggle');
+        const migrationList = document.getElementById('migration-list');
+        const migrationConfirmButton = document.getElementById('migration-confirm-button');
+        const backgroundSelect = document.getElementById('background-select');
+        const backgroundImage = document.getElementById('background-image');
+        const shadeToggle = document.getElementById('shade-toggle');
+        const dvdCode = localStorage.getItem('file-dvdCode');
+        
+        let previousCursorPosition = null;
+        let fontSize = 20;
+        let scale = 1;
+        let pinchStartDistance = null;
+        let pinchStartScale = null;
+        let fun = false;
+        let hue = 0;
+        let currentFile = null;
+        let originalFilename = null;
+        let touchStartTime;
+        let touchStartTarget;
+        let touchMoved = false;
+        let holdTimeout;
+        let globalHoldTimeout;
+        let longHoldDetected = false;
+        let consoleWindowDisplay = false;
+        let keyboardButtonClick = false;
+        let isResizing = false;
+        let resizeHandler;
+        let stopResizingHandler;
+        let startY;
+        let originalAdjust;
+        let previewSizeNoKeyboard = null;
+        let previewSizeNoCabinet = null;
+        let fileParts = null;
+        
+        // Utility functions
+        function isKeyboardVisible() {
+            return window.visualViewport.height + 100 < window.innerHeight;
+        }
+        
+        function unintrusiveKeyboard() {
+            if (!isKeyboardVisible() && document.activeElement === codeEditor) {
+                codeEditor.blur();
+            }
+        }
+        
+        function isCodeModified() {
+            return (currentFile && codeEditor.value !== retrieveFile(currentFile)) || (currentFile === null && codeEditor.value !== '');
+        }
+        
+        function createTempFile() {
+            let tempFilename;
+            if (currentFile) {
+                tempFilename = currentFile;
+                if (!currentFile.endsWith(tempSuffix)) {
+                    tempFilename += tempSuffix;
+                }
+            } else {
+                tempFilename = filenameInput.value + tempSuffix;
+            }
+            files[tempFilename] = codeEditor.value;
+            currentFile = tempFilename;
+            updateFileList();
+            
+            // Move history to new filename
+            if ((fileHistory[currentFile.replace(tempSuffix, '')]) && !(filenameInput.value === tempSuffix)) {
+                fileHistory[tempFilename] = fileHistory[currentFile.replace(tempSuffix, '')];
+                delete fileHistory[currentFile.replace(tempSuffix, '')];
+            }
+        }
+        
+        function resizeElement(e, element, direction, minSize, maxSize, originalSize) {
+            if (isResizing) {
+                const newSize = direction === 'vertical'
+                ? originalSize + (e.touches[0].clientY - startY)
+                : originalSize + (e.touches[0].clientX - startX);
+                const boundedSize = Math.min(Math.max(newSize, minSize), maxSize);
+                if (direction === 'vertical') {
+                    element.style.minHeight = `${boundedSize}px`;
+                } else {
+                    element.style.minWidth = `${boundedSize}px`;
+                }
+            }
+        }
+        
+        function stopResizing() {
+            isResizing = false;
+            document.removeEventListener('touchmove', resizeHandler);
+            document.removeEventListener('touchend', stopResizingHandler);
+        }
+        
+        function previewFitAdjust(element) { // For automatic ajustment in order to fit the keyboard and other elements
+            if (element === 'keyboard') {
+                if (isKeyboardVisible() && previewToggle.checked) {
+                    if (previewWindowContainer.offsetHeight > Math.max(window.visualViewport.height - 455, 200)) {
+                        previewSizeNoKeyboard = previewWindowContainer.offsetHeight;
+                        previewWindowContainer.style.minHeight = `${Math.max(window.visualViewport.height - 455, 200)}px`;
+                    }
+                } else if (!isKeyboardVisible() && previewToggle.checked) {
+                    previewWindowContainer.style.minHeight = `${previewSizeNoKeyboard}px`;
+                    previewSizeNoKeyboard = null;
+                    if (previewWindowContainer.offsetHeight > Math.max(window.visualViewport.height - 455, 200)) {
+                        previewWindowContainer.style.minHeight = `${Math.max(window.visualViewport.height - 455, 200)}px`; // General constrain to shortened window height
+                    }
+                }
+            } else if (element === 'cabinet') {
+                setTimeout(function() {
+                    if (fileCabinet.classList.contains('visible') && previewWindowContainer.offsetHeight > Math.max(window.visualViewport.height - 595, 200)) {
+                        previewSizeNoCabinet = previewWindowContainer.offsetHeight;
+                        previewWindowContainer.style.minHeight = `${Math.max(window.visualViewport.height - 595, 200)}px`;
+                    } else if (!fileCabinet.classList.contains('visible')) {
+                        previewWindowContainer.style.minHeight = `${previewSizeNoCabinet}px`;
+                        previewSizeNoCabinet = null;
+                    }
+                }, 200);
+            }
+        }
+        setTimeout(function() {
+            previewWindowContainer.style.minHeight = `${Math.max(window.visualViewport.height * 0.3, 200)}px`; // Set initial preview height to 30%, but in pixel units
+        }, 100);
+        
+        // General updates on editor use
+        codeEditor.addEventListener('input', () => {
+            updatePreview();
+            updateFileList();
+        });
+        
+        // Disable codeEditor focus loss on long presses
+        document.addEventListener('touchstart', (e) => {
+            if (e.target !== codeEditor) {
+                touchStartTime = Date.now();
+                touchStartTarget = e.target;
+                globalHoldTimeout = setTimeout(() => {
+                    longHoldDetected = true;
+                }, 500);
+            }
+        });
+
+        document.addEventListener('touchend', (e) => {
+            clearTimeout(globalHoldTimeout);
+            longHoldDetected = false;
+        });
+
+        codeEditor.addEventListener('blur', (e) => {
+            if (longHoldDetected) {
+                longHoldDetected = false;
+                codeEditor.focus();
+            }
+        });
+        
+        // Editor adaption to window size changes
+        window.addEventListener('resize', () => {
+            const viewportHeight = window.visualViewport.height;
+            document.body.style.height = `${viewportHeight}px`;
+            previewFitAdjust('keyboard');
+            setTimeout(function() {
+                keyboardButton();
+            }, 100);
+        });
+        
+        // Pinch Zooming in Editor
+        codeEditor.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                pinchStartDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                pinchStartScale = scale;
+            }
+        });
+
+        codeEditor.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && pinchStartDistance !== null) {
+                // Save scroll positions before font size change
+                const scrollHeight = codeEditor.scrollHeight;
+                const clientHeight = codeEditor.clientHeight;
+                const scrollTop = codeEditor.scrollTop;
+                const scrollPercentageY = (scrollTop / (scrollHeight - clientHeight));
+
+                const scrollWidth = codeEditor.scrollWidth;
+                const clientWidth = codeEditor.clientWidth;
+                const scrollLeft = codeEditor.scrollLeft;
+                const scrollPercentageX = (scrollLeft / (scrollWidth - clientWidth));
+
+                e.preventDefault(); 
+                const currentDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                scale = pinchStartScale * (currentDistance / pinchStartDistance);
+                scale = Math.max(0.3, Math.min(scale, 5)); 
+                fontSize = Math.floor(20 * scale); 
+                codeEditor.style.fontSize = `${fontSize}px`;
+
+                // Restore scroll positions after font size change
+                requestAnimationFrame(() => {
+                    const newScrollHeight = codeEditor.scrollHeight;
+                    const newClientHeight = codeEditor.clientHeight;
+                    codeEditor.scrollTop = scrollPercentageY * (newScrollHeight - newClientHeight);
+
+                    const newScrollWidth = codeEditor.scrollWidth;
+                    const newClientWidth = codeEditor.clientWidth;
+                    codeEditor.scrollLeft = scrollPercentageX * (newScrollWidth - newClientWidth);
+                });
+            }
+        });
+        
+        codeEditor.addEventListener('touchend', () => {
+            pinchStartDistance = null;
+            pinchStartScale = null;
+        });
+        
+        // Text wrap toggle
+        wrapToggle.addEventListener('change', () => {
+            codeEditor.classList.toggle('wrapped', wrapToggle.checked);
+        });
+        
+        // Preview functionality
+        previewResize.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            navigator.vibrate(50);
+            previewResize.classList.add('active');
+            unintrusiveKeyboard();
+            previewSizeNoKeyboard = null; // Delete old restore size when adjusted manually
+            previewSizeNoCabinet = null;
+            const maxPixOffset = fileCabinet.classList.contains('visible') ? 595 : 455;
+            isResizing = true;
+            startY = e.touches[0].clientY;
+            startX = e.touches[0].clientX;
+            const element = previewWindowContainer;
+            const direction = 'vertical';
+            const minSize = Math.max(window.innerHeight * 0.2, 200); // Window bounds, minimum 200px
+            const maxSize = Math.max(window.visualViewport.height - maxPixOffset, 200); // Window bounds, minimum 200px
+            const originalSize = element.offsetHeight;
+            resizeHandler = (e) => {
+                resizeElement(e, element, direction, minSize, maxSize, originalSize);
+                consoleWindow.style.maxHeight = `${previewWindowContainer.offsetHeight - previewResize.offsetHeight}px`;
+                consoleWindow.scrollTop = consoleWindow.scrollHeight;
+            };
+            stopResizingHandler = () => {
+                previewResize.classList.remove('active');
+                stopResizing();
+            };
+            document.addEventListener('touchmove', resizeHandler);
+            document.addEventListener('touchend', stopResizingHandler);
+        });
+        
+        previewResize.addEventListener('touchend', (e) => {
+            e.preventDefault();
+        });
+        
+        previewToggle.addEventListener('change', () => {
+            unintrusiveKeyboard();
+            if (previewToggle.checked) {
+                previewWindowContainer.style.display = 'flex';
+                updatePreview();
+            } else {
+                previewWindowContainer.style.display = 'none';
+                consoleWindowDisplay = false;
+            }
+            previewFitAdjust('keyboard');
+        });
+        
+        // Long Press for Console Window
+        previewToggleButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartTime = Date.now();
+            touchStartTarget = e.target;
+            holdTimeout = setTimeout(() => {
+                if (!previewToggle.checked) {
+                    consoleWindowDisplay = true;
+                    previewToggle.click();
+                } else {
+                    consoleWindowDisplay = !consoleWindowDisplay;
+                    updatePreview();
+                    navigator.vibrate(50);
+                }
+            }, 500);
+        });
+
+        previewToggleButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (touchStartTarget === e.target) {
+                clearTimeout(holdTimeout);
+                const touchEndTime = Date.now();
+                const touchDuration = touchEndTime - touchStartTime;
+                if (touchDuration < 500) { 
+                    previewToggle.click();
+                }
+            }
+        });
+        
+        function updatePreview() {
+            if (previewToggle.checked) {
+                // Console Window
+                if (consoleWindowDisplay) {
+                    previewWindow.style.width = '80%';
+                    consoleWindow.style.display = 'block';
+                } else {
+                    previewWindow.style.width = '';
+                    consoleWindow.style.display = 'none';
+                }
+                previewWindow.addEventListener('load', () => {
+                    const iframeConsole = previewWindow.contentWindow.console;
+                    consoleWindow.innerHTML = '<div id="console-fade"><h3 id="console-window-header" class="unselectable">Console</h3></div>';
+                    iframeConsole.log = (...args) => {
+                        const logMessage = args.join(' ');
+                        const escapedLogMessage = logMessage.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        consoleWindow.innerHTML += `<p id="console-log-message">${escapedLogMessage}</p>`;
+                        consoleWindow.scrollTop = consoleWindow.scrollHeight;
+                    };
+                });
+                const code = codeEditor.value;
+                const blob = new Blob([code], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                previewWindow.src = url;
+                consoleWindow.style.maxHeight = `${previewWindowContainer.offsetHeight - previewResize.offsetHeight}px`;
+            }
+        }
+        
+        // Automatic Indenting
+        codeEditor.addEventListener('keydown', function(event) {
+            if ((event.key === 'Enter' || event.keyCode === 13) && (!this.selectionStart || this.selectionStart === this.selectionEnd)) {
+                const text = this.value;
+                const caretPosition = this.selectionStart;
+                const lines = text.split('\n');
+                const currentLineIndex = text.substring(0, caretPosition).split('\n').length - 1;
+                const previousLine = lines[currentLineIndex];
+                const indent = previousLine.match(/^[\s]*/)[0];
+                event.preventDefault();
+                // Insert newline with preserved indentation
+                const newText = text.substring(0, caretPosition) + '\n' + indent;
+                this.value = newText + text.substring(caretPosition);
+                // Move cursor to new line
+                this.selectionStart = this.selectionEnd = caretPosition + indent.length + 1;
+            }
+        });
+        
+        // History Control
+        codeEditor.addEventListener('input', updateHistory);
+        undoButton.addEventListener('click', undo);
+        redoButton.addEventListener('click', redo);
+
+        const MAX_HISTORY_ENTRIES_PER_FILE = 100;
+
+        function updateHistory() {
+            const currentFile = filenameInput.value;
+            if (!fileHistory[currentFile]) {
+                fileHistory[currentFile] = [];
+                fileHistory[currentFile].currentIndex = -1;
+            }
+
+            if (fileHistory[currentFile].currentIndex < fileHistory[currentFile].length - 1) {
+                fileHistory[currentFile] = fileHistory[currentFile].slice(0, fileHistory[currentFile].currentIndex + 1);
+                fileHistory[currentFile].currentIndex = fileHistory[currentFile].length - 1; // update currentIndex
+            }
+            
+            if (fileHistory[currentFile].length > MAX_HISTORY_ENTRIES_PER_FILE) {
+                fileHistory[currentFile].shift(); // remove the oldest entry
+            }
+
+            fileHistory[currentFile].push(codeEditor.value);
+            fileHistory[currentFile].currentIndex= Math.min(fileHistory[currentFile].currentIndex + 1, MAX_HISTORY_ENTRIES_PER_FILE);
+            updateButtonStates();
+        }
+
+        function undo() {
+            const currentFile = filenameInput.value;
+            if (fileHistory[currentFile].currentIndex > 0) {
+                fileHistory[currentFile].currentIndex--;
+                codeEditor.value = fileHistory[currentFile][fileHistory[currentFile].currentIndex];
+                updateButtonStates();
+                updatePreview();
+                updateFileList();
+            }
+        }
+
+        function redo() {
+            const currentFile = filenameInput.value;
+            if (fileHistory[currentFile].currentIndex < fileHistory[currentFile].length - 1) {
+                fileHistory[currentFile].currentIndex++;
+                codeEditor.value = fileHistory[currentFile][fileHistory[currentFile].currentIndex];
+                updateButtonStates();
+                updatePreview();
+                updateFileList();
+            }
+        }
+        
+        function updateButtonStates() {
+            const currentFile = filenameInput.value;
+            undoButton.disabled = fileHistory[currentFile].currentIndex === 0;
+            redoButton.disabled = fileHistory[currentFile].currentIndex === fileHistory[currentFile].length - 1;
+        }
+        updateHistory();
+
+        function downloadFile() {
+            const code = codeEditor.value;
+            let filename = filenameInput.value || 'new_file.html';
+            const originalFilename = filename;
+  
+            // Remove prefix or suffix
+            if (filename.endsWith(tempSuffix)) {
+                filename = filename.slice(0, -tempSuffix.length);
+                filenameInput.value = filename;
+            }
+            
+            if (filename.startsWith(starPrefix)) {
+                filename = filename.slice(starPrefix.length);
+                filenameInput.value = filename;
+            }
+
+            const blob = new Blob([code], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            filenameInput.value = originalFilename;
+        }
+
+        function openFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.html';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    if (isCodeModified()) {
+                        createTempFile();
+                    }
+                    codeEditor.value = event.target.result;
+                    filenameInput.value = file.name;
+      
+                    // Check if file exists in the list
+                    if (files[file.name]) {
+                        currentFile = file.name;
+                        updateFileList();
+                    } else {
+                        currentFile = null;
+                        updateFileList();
+                    }
+                    // Load file history
+                    if (!fileHistory[file.name]) {
+                        fileHistory[file.name] = [];
+                        fileHistory[file.name].currentIndex = -1;
+                        fileHistory[file.name].push(codeEditor.value); // Initial state
+                        fileHistory[file.name].currentIndex++;
+                    }
+                    updatePreview();
+                    updateButtonStates();
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function previewInNewTab() {
+            const code = codeEditor.value;
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const newTab = window.open(url, '_blank');
+        }
+
+        copyButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            copyButton.classList.add('active');
+            copyAll();
+        });
+        
+        copyButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            setTimeout(function() {
+                copyButton.classList.remove('active');
+            }, 100);
+        });
+
+        function copyAll() {
+            let copied = false;
+            if (codeEditor.selectionStart !== codeEditor.selectionEnd) {
+                if (codeEditor.value.substring(codeEditor.selectionStart, codeEditor.selectionEnd) !== '') {
+                    copied = document.execCommand('copy');
+                }
+            } else {
+                if (codeEditor.value !== '') {
+                    const textArea = document.createElement('textArea');
+                    textArea.value = codeEditor.value;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    copied = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
+            }
+            if (copied) {
+                navigator.vibrate(50);
+            }
+            if (isKeyboardVisible()) {
+                codeEditor.focus();
+            }
+        }
+        
+        selectButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            selectButton.classList.add('active');
+            touchStartTime = Date.now();
+            touchStartTarget = e.target;
+            holdTimeout = setTimeout(() => {
+                selectAll();
+            }, 500);
+        });
+
+        selectButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            setTimeout(function() {
+                selectButton.classList.remove('active');
+            }, 100);
+            if (touchStartTarget === e.target) {
+                clearTimeout(holdTimeout);
+                const touchEndTime = Date.now();
+                const touchDuration = touchEndTime - touchStartTime;
+                if (touchDuration < 500) { 
+                    selectLine();
+                }
+            }
+        });
+        
+        function selectAll() {
+            codeEditor.select();
+            codeEditor.focus();
+            if (codeEditor.selectionStart !== codeEditor.selectionEnd) {
+                navigator.vibrate(50);
+            }
+        }
+        
+        function selectLine() {
+            const text = codeEditor.value;
+            const lines = text.split('\n');
+            let cursorPosition = codeEditor.selectionStart;
+            let lineNumber = 0;
+            let charPosition = 0;
+            if (text[cursorPosition] === '\n') {
+                cursorPosition--;
+            }
+            for (let i = 0; i < lines.length; i++) {
+                const lineLength = lines[i].length + (i < lines.length - 1 ? 1 : 0); // +1 for the newline character, unless it's the last line
+                if (charPosition <= cursorPosition && cursorPosition < charPosition + lineLength) {
+                    lineNumber = i;
+                    break;
+                }
+                charPosition += lineLength;
+            }
+            const lineStart = text.lastIndexOf('\n', cursorPosition) + 1 || 0; // || 0 in case the cursor is at the beginning of the file
+            const lineEnd = text.indexOf('\n', cursorPosition) || text.length; // || text.length in case the cursor is at the end of the file
+            codeEditor.setSelectionRange(lineStart, lineEnd);
+            if ((codeEditor.selectionStart !== codeEditor.selectionEnd) && (document.activeElement === codeEditor)) {
+                navigator.vibrate(50);
+            }
+        }
+        
+        // Keyboard Button Visibility
+        function keyboardButton() {
+            if (isKeyboardVisible()) {
+                hideKeyboardButton.classList.add('showing');
+                setTimeout(function() {
+                    hideKeyboardButton.classList.add('visible');
+                    hideKeyboardButton.classList.remove('showing');
+                }, 200);
+            } else if (keyboardButtonClick) {
+                setTimeout(function() {
+                    hideKeyboardButton.classList.add('hiding');
+                    hideKeyboardButton.classList.remove('visible');
+                    setTimeout (function() {
+                        hideKeyboardButton.classList.remove('hiding');
+                    }, 200);
+                }, 200);
+                keyboardButtonClick = false;
+            } else {
+                hideKeyboardButton.classList.remove('visible');
+                hideKeyboardButton.classList.remove('showing');
+                hideKeyboardButton.classList.remove('hiding');
+            }
+        }
+        
+        hideKeyboardButton.addEventListener('touchstart', (e) => {
+            hideKeyboardButton.classlist.add('active');
+        });
+        
+        hideKeyboardButton.addEventListener('touchend', (e) => {
+            keyboardButtonClick = true;
+            setTimeout(function() {
+                hideKeyboardButton.classList.remove('active');
+            }, 100);
+        });
+
+        // New Window Button
+        document.getElementById('new-window-button').addEventListener('click', () => {
+            const currentUrl = window.location.href;
+            const newTab = window.open(currentUrl, '_blank');
+        });
+        
+        // Clear Screen Button
+        document.getElementById('clear-button').addEventListener('click', () => {
+            const confirmClear = confirm(`Are you sure you want to clear the screen?`);
+            if (confirmClear) {
+                if (isCodeModified()) {
+                    createTempFile();
+                }
+                codeEditor.value = '';
+                filenameInput.value = '';
+                currentFile = null;
+                updateFileList();
+                updatePreview();
+                
+                // Clear History
+                fileHistory[''] = [];
+                fileHistory[''].currentIndex = -1;
+                fileHistory[''].push(codeEditor.value); // Initial state
+                fileHistory[''].currentIndex++;
+                updateButtonStates();
+            }
+        });
+        
+        function animate() {
+            if (fun) {
+                codeEditor.style.color = `hsl(${hue}, 100%, 50%)`;
+                consoleWindow.style.color = `hsl(${hue}, 100%, 50%)`;
+                hue = (hue + 0.5) % 360;
+                requestAnimationFrame(animate);
+            } else {
+                codeEditor.style.color = 'white';
+                consoleWindow.style.color = 'white';
+            }
+        }
+        
+        function toggleFun() {
+            fun = !fun;
+            if (fun) {
+                dvdrun = true;
+                eval(dvdCode);
+                animate();
+            } else {
+                dvdrun = false;
+            }
+        }
+        
+        document.getElementById('title').addEventListener('dblclick', () => {
+           toggleFun();
+           title.classList.toggle('rainbow-text');
+        });
+        
+        saveFileButton.addEventListener('click', () => {
+            let filename = filenameInput.value;
+
+            // Remove temp suffix if saving a temp file
+            if (currentFile && currentFile.endsWith(tempSuffix)) {
+                filename = filename.slice(0, -tempSuffix.length);
+                filenameInput.value = filename;
+            }
+            if (filename) {
+                // Update files object
+                if (currentFile && currentFile.endsWith(tempSuffix)) {
+                    delete files[currentFile];
+                }
+    
+                // Add new file or update existing one
+                files[filename] = codeEditor.value;
+                storeFile(filename, codeEditor.value);
+                currentFile = filename;
+                updateFileList();
+            }
+        });
+
+        deleteFileButton.addEventListener('click', () => {
+            if (currentFile) {
+                if (currentFile.startsWith(starPrefix) && !(currentFile.endsWith(tempSuffix))) {
+                    alert("You cannot delete a starred file.");
+                    return;
+                }
+                const confirmDelete = confirm(`Are you sure you want to delete "${currentFile}"?`);
+                if (confirmDelete) {
+                    delete files[currentFile];
+                    deleteFile(currentFile);
+                    updateFileList();
+                    // Clear Editor
+                    codeEditor.value = '';
+                    filenameInput.value = '';
+                    currentFile = null;
+                    updateFileList();
+                }
+            }
+        });
+
+        renameFileButton.addEventListener('click', () => {
+            if (currentFile) {
+                if (isCodeModified() || currentFile.endsWith(tempSuffix)) {
+                    alert("Please save the file first to rename it.");
+                    return;
+                } else {
+                    const filenameElement = document.querySelector(`li.selected`);
+                    const filenameInput = document.createElement('input');
+                    filenameInput.type = 'text';
+                    filenameInput.id = 'rename-input';
+                    filenameInput.value = currentFile;
+                    filenameElement.innerHTML = '';
+                    filenameElement.appendChild(filenameInput);
+                    filenameInput.focus();
+                    filenameInput.addEventListener('blur', () => {
+                        const newFilename = filenameInput.value.trim();
+                        if (newFilename) {
+                            renameFile(currentFile, newFilename);
+                        }
+                    });
+                    filenameInput.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter') {
+                            filenameInput.blur();
+                        }
+                    });
+                }
+            }
+        });
+
+        fileList.addEventListener('click', (e) => {
+            if (e.target.tagName === 'LI') {
+                const filename = e.target.textContent;
+                if (isCodeModified()) {
+                    createTempFile();
+                }
+                // Load tapped file
+                if (filename.endsWith(tempSuffix)) {
+                    codeEditor.value = files[filename];
+                    currentFile = filename;
+                } else {
+                    currentFile = filename;
+                    codeEditor.value = retrieveFile(filename);
+                }
+                // Load file history
+                if (!fileHistory[filename]) {
+                    fileHistory[filename] = [];
+                    fileHistory[filename].currentIndex = -1;
+                    fileHistory[filename].push(codeEditor.value); // Initial state
+                    fileHistory[filename].currentIndex++;
+                }
+                filenameInput.value = filename;
+                updateFileList();
+                updatePreview();
+                updateButtonStates();
+                navigator.vibrate(50);
+            }
+        });
+
+        fileList.addEventListener('touchstart', (e) => {
+            touchStartTime = Date.now();
+            touchStartTarget = e.target;
+            touchMoved = false;
+            holdTimeout = setTimeout(() => {
+                if (!touchMoved && touchStartTarget) {
+                    const filename = touchStartTarget.textContent;
+                    const isStarred = filename.startsWith(starPrefix);
+                    const newFilename = isStarred ? filename.slice(starPrefix.length) : starPrefix + filename;
+                    renameFile(filename, newFilename);
+                }
+            }, 1000);
+        });
+
+        fileList.addEventListener('touchmove', () => {
+            touchMoved = true;
+            clearTimeout(holdTimeout);
+        });
+
+        fileList.addEventListener('touchend', () => {
+            clearTimeout(holdTimeout);
+        });
+        
+        // Update currentFile when filenameInput changes
+        filenameInput.addEventListener('input', () => {
+            const filename = filenameInput.value;
+            if (!files[filename]) {
+                currentFile = null;
+            } else {
+                currentFile = filename;
+            }
+            updateFileList();
+            updateButtonStates();
+        });
+
+        fileButton.addEventListener('click', () => {
+            fileCabinet.classList.toggle('visible');
+        });
+        
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target.classList.contains('visible') || !mutation.target.classList.contains('visible')) {
+                    previewFitAdjust('cabinet');
+                }
+            });
+        });
+
+        observer.observe(fileCabinet, {
+             attributes: true,
+             attributeFilter: ['class'],
+        });
+        
+        document.addEventListener('click', (event) => {
+            if (!fileCabinet.contains(event.target) && !fileButton.contains(event.target)) {
+                fileCabinet.classList.remove('visible');
+            }
+            if (!migrationWindow.contains(event.target) && !(exportButton.contains(event.target) || importButton.contains(event.target))) {
+                migrationWindow.classList.remove('visible');
+            }
+        });
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+  
+            // Separate starred files and sort them separately
+            const starredFiles = Object.keys(files).filter((filename) => filename.startsWith(starPrefix));
+            const otherFiles = Object.keys(files).filter((filename) => !filename.startsWith(starPrefix));
+ 
+            // Sort both arrays alphabetically
+            starredFiles.sort((a, b) => a.localeCompare(b));
+            otherFiles.sort((a, b) => a.localeCompare(b));
+  
+            // Combine the two arrays, with starred files first
+            const sortedFiles = [...starredFiles, ...otherFiles];
+  
+            sortedFiles.forEach((filename) => {
+                const li = document.createElement('li');
+                li.textContent = filename
+    
+            // Existing conditions
+                if (filename === currentFile) {
+                    if (codeEditor.value !== retrieveFile(filename)) {
+                        li.classList.add('modified', 'unsaved');
+                    } else if (filename.startsWith(starPrefix)) {
+                        li.classList.add('starred', 'selected');
+                    } else {
+                        li.classList.add('selected');
+                    }
+                } else if (filename.startsWith(starPrefix) && !(filename.endsWith(tempSuffix))) {
+                    li.classList.add('starred');
+                } else if (filename.endsWith(tempSuffix)) {
+                    li.classList.add('unsaved');
+                }
+                fileList.appendChild(li);
+            });
+        }
+
+        // LocalStorage functions
+        function storeFile(filename, content) {
+            localStorage.setItem(`file-${filename}`, content);
+        }
+
+        function retrieveFile(filename) {
+            if (filename === tempFilename) {
+                return files[filename];
+            } else {
+                return localStorage.getItem(`file-${filename}`);
+            }
+        }
+
+        function deleteFile(filename) {
+            localStorage.removeItem(`file-${filename}`);
+        }
+
+        function renameFile(oldFilename, newFilename) {
+            if (newFilename !== oldFilename) {
+                const content = retrieveFile(oldFilename);
+                storeFile(newFilename, content);
+                deleteFile(oldFilename);
+                files[newFilename] = content;
+                delete files[oldFilename];
+                // Move history to new filename
+                if (fileHistory[oldFilename]) {
+                    fileHistory[newFilename] = fileHistory[oldFilename];
+                    delete fileHistory[oldFilename];
+                }
+                if (currentFile === oldFilename) {
+                    currentFile = newFilename;
+                    filenameInput.value = newFilename;
+                }
+            }
+            updateFileList();
+        }
+
+        // Initialize file list
+        files = {};
+        for (const key in localStorage) {
+            if (key.startsWith('file-')) {
+                const filename = key.slice(5);
+                files[filename] = retrieveFile(filename);
+            }
+        }
+        const sortedFiles = Object.fromEntries(Object.entries(files).sort());
+        files = sortedFiles;
+        updateFileList();
+
+        // Data Migration functions
+        selectionToggle.addEventListener('click', () => {
+            const checkboxes = migrationList.querySelectorAll('input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every((checkbox) => checkbox.checked);
+
+            if (allChecked) {
+                checkboxes.forEach((checkbox) => {
+                    checkbox.checked = false;
+                    handleCheckboxClick(checkbox.parentNode, false);
+                });
+                selectionToggle.textContent = 'Select All';
+            } else {
+                checkboxes.forEach((checkbox) => {
+                    checkbox.checked = true;
+                    handleCheckboxClick(checkbox.parentNode, false);
+                });
+                selectionToggle.textContent = 'Select None';
+            }
+        });
+
+        migrationList.addEventListener('click', (event) => {
+            if (event.target.tagName === 'LI' || event.target.parentNode.tagName === 'LI') {
+                const listItem = event.target.tagName === 'LI' ? event.target : event.target.parentNode;
+                handleCheckboxClick(listItem, true);
+            }
+        });
+        
+        function handleCheckboxClick(eventTarget, toggle = true) {
+            const checkbox = eventTarget.querySelector('input[type="checkbox"]');
+            if (toggle) {
+                checkbox.checked = !checkbox.checked;
+            }
+            if (checkbox.checked) {
+                if (fileParts) {
+                    const fileName = checkbox.nextElementSibling.textContent;
+                    const fileData = fileParts[fileParts.indexOf(fileName) + 1];
+                    let existingData;
+                    if (fileName.startsWith('image-')) {
+                        existingData = localStorage.getItem(fileName);
+                    } else {
+                        existingData = retrieveFile(fileName);
+                    }
+                    if (existingData && existingData.trim() !== fileData.trim()) {
+                        eventTarget.classList.add('overwrite');
+                    } else {
+                        eventTarget.classList.add('selected');
+                    }
+                } else {
+                    eventTarget.classList.add('selected');
+                }
+            } else {
+                eventTarget.classList.remove('selected');
+                eventTarget.classList.remove('overwrite');
+            }
+            const checkboxes = migrationList.querySelectorAll('input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every((checkbox) => checkbox.checked);
+            if (allChecked) {
+                selectionToggle.textContent = 'Select None';
+            } else {
+                selectionToggle.textContent = 'Select All';
+            }
+        }
+        
+        function exportFiles() {
+            fileParts = null;
+            const filesToExport = Object.keys(files);
+            const imageKeys = Object.keys(localStorage).filter(key => key.startsWith('image-'));
+            migrationList.innerHTML = '';
+
+            filesToExport.forEach((filename) => {
+                const listItem = document.createElement('li');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                const label = document.createElement('label');
+                label.textContent = filename;
+                listItem.appendChild(checkbox);
+                listItem.appendChild(label);
+                migrationList.appendChild(listItem);
+            });
+
+            imageKeys.forEach((imageKey) => {
+                const listItem = document.createElement('li');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                const label = document.createElement('label');
+                label.textContent = imageKey;
+                listItem.appendChild(checkbox);
+                listItem.appendChild(label);
+                migrationList.appendChild(listItem);
+            });
+
+            migrationWindow.classList.add('visible');
+            fileCabinet.classList.remove('visible');
+            const migrationTitle = document.getElementById('migration-title');
+            migrationTitle.textContent = 'Select Files to Export';
+            migrationConfirmButton.textContent = 'Export';
+
+            migrationConfirmButton.onclick = () => {
+                const selectedCheckboxes = migrationList.querySelectorAll('input[type="checkbox"]:checked');
+                if (selectedCheckboxes.length === 0) {
+                    alert('Select some files first!');
+                    return;
+                }
+
+                const exportContent = [];
+                selectedCheckboxes.forEach((checkbox) => {
+                    const fileName = checkbox.nextElementSibling.textContent;
+                    if (fileName.startsWith('image-')) {
+                        exportContent.push(`--- ${fileName} ---\n${localStorage.getItem(fileName)}\n\n`);
+                    } else {
+                        exportContent.push(`--- ${fileName} ---\n${retrieveFile(fileName)}\n\n`);
+                    }
+                });
+                
+                const timestamp = new Date().toISOString().replace(/:/g, '').replace(/-/g, '').replace('T', '_').split('.')[0];
+                const blob = new Blob(exportContent, { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `export_${timestamp}.txt`;
+                link.click();
+
+                migrationWindow.classList.remove('visible');
+            };
+        }
+        
+        function importFiles() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.txt';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const fileContent = event.target.result;
+                    fileParts = fileContent.split(/(?!\n*--- \(.+\) ---\n\+)\n*--- (.+) ---\n+/g);
+                    fileParts.shift();
+
+                    migrationList.innerHTML = '';
+                    for (let i = 0; i < fileParts.length; i += 2) {
+                        const fileName = fileParts[i];
+                        const listItem = document.createElement('li');
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        const label = document.createElement('label');
+                        label.textContent = fileName;
+                        listItem.appendChild(checkbox);
+                        listItem.appendChild(label);
+                        migrationList.appendChild(listItem);
+                    }
+
+                    migrationWindow.classList.add('visible');
+                    fileCabinet.classList.remove('visible');
+                    const migrationTitle = document.getElementById('migration-title');
+                    migrationTitle.textContent = 'Select Files to Import';
+                    migrationConfirmButton.textContent = 'Import';
+
+                    migrationConfirmButton.onclick = () => {
+                        const selectedCheckboxes = migrationList.querySelectorAll('input[type="checkbox"]:checked');
+                        if (selectedCheckboxes.length === 0) {
+                            alert('Select some files first!');
+                            return;
+                        }
+
+                        let importSuccessful = true;
+                        selectedCheckboxes.forEach((checkbox) => {
+                            const fileName = checkbox.nextElementSibling.textContent;
+                            const fileData = fileParts[fileParts.indexOf(fileName) + 1];
+                            try {
+                                if (fileName.startsWith('image-')) {
+                                    localStorage.setItem(fileName, fileData);
+                                } else {
+                                    files[fileName] = fileData;
+                                    storeFile(fileName, fileData);
+                                }
+                            } catch (error) {
+                                importSuccessful = false;
+                                console.error(`Error importing file ${fileName}: ${error.message}`);
+                            }
+                        });
+
+                        updateFileList();
+                        if (importSuccessful) {
+                            alert('Files imported successfully!');
+                        } else {
+                            alert('ERROR IMPORTING FILES!');
+                        }
+                        fileParts = null;
+                        migrationWindow.classList.remove('visible');
+                    };
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Collect and sort image keys from local storage
+        const imageKeys = [];
+        for (const key in localStorage) {
+            if (localStorage.hasOwnProperty(key) && key.startsWith('image-')) {
+                imageKeys.push(key);
+            }
+        }
+        imageKeys.sort((a, b) => a.localeCompare(b));
+
+        // Populate the background select dropdown
+        imageKeys.forEach((key) => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.text = key.replace('image-', '');
+            backgroundSelect.appendChild(option);
+        });
+
+        backgroundSelect.addEventListener('change', (event) => {
+            const selectedValue = backgroundSelect.value;
+                if (selectedValue === 'none') {
+                    backgroundImage.src = '';
+                    codeEditor.style.background = '';
+                    codeEditor.style.textShadow = '';
+                    backgroundImage.style.display = '';
+                    localStorage.removeItem('backgroundImage');
+                } else {
+                    const base64Code = localStorage.getItem(selectedValue);
+                    backgroundImage.src = base64Code;
+                    codeEditor.style.background = "transparent";
+                    codeEditor.style.textShadow = "3px 3px 5px #000";
+                    backgroundImage.style.display = 'inline';
+                    localStorage.setItem('backgroundImage', base64Code);
+                }
+            });
+
+            window.onload = () => {
+                const savedBackgroundImage = localStorage.getItem('backgroundImage');
+                const savedBrightness = localStorage.getItem('backgroundBrightness');
+                if (savedBrightness) {
+                    shadeToggle.checked = savedBrightness < 1;
+                    backgroundImage.style.filter = `brightness(${savedBrightness})`;
+                }
+                if (savedBackgroundImage) {
+                backgroundImage.src = savedBackgroundImage;
+                codeEditor.style.background = "transparent";
+                codeEditor.style.textShadow = "3px 3px 5px #000";
+                backgroundImage.style.display = 'inline';
+            }
+        };
+        shadeToggle.addEventListener('change', () => {
+        const brightness = shadeToggle.checked ? 0.5 : 1;
+        backgroundImage.style.filter = `brightness(${brightness})`;
+        localStorage.setItem('backgroundBrightness', brightness);
+        });
+        
+        codeEditor.addEventListener('contextmenu', (e) => {
+            if (fileCabinet.classList.contains('visible')) {
+                e.preventDefault();
+            }
+        });
+        
+        // Add event listener to all buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', () => {
+                navigator.vibrate(50);
+            });
+        });
+    </script>
+</body>
+</html>
