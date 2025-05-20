@@ -34,6 +34,7 @@
         
         h1 {
             white-space: nowrap;
+            font-size: 18px;
         }
         
         label {
@@ -49,8 +50,8 @@
         
         button {
             width: 100%;
-            padding: 10px;
-            font-size: 20px;
+            padding: 15px;
+            font-size: 12px;
             background-color: #333;
             color: #fff;
             border: none;
@@ -67,7 +68,7 @@
         }
         
         .button-large {
-            padding: 30px;
+            padding: 8px;
             white-space: nowrap;
         }
         
@@ -79,16 +80,16 @@
             position: sticky;
             top: 0;
             transform: translateY(-1px);
-            padding: 0 10px;
-            padding-top: 10px;
+            padding: 0 5px;
+            padding-top: 5px;
             background-color: rgba(00, 00, 00, 0.8);
             z-index: 1;
         }
         
         .heading-button {
             width: 28%;
-            padding: 10px;
-            font-size: 20px;
+            padding: 5px;
+            font-size: 12px;
             white-space: nowrap;
         }
         
@@ -108,25 +109,27 @@
             align-items: center;
             gap: 10px;
             width: 30%;
-            font-size: 20px;
+            font-size: 12px;
         }
         
         .settings-button {
             width: fit-content;
+            padding: 5px;
         }
         
         #preview-window {
             width: 100%;
-            height: 100%;
+            height: 105%;
             border: none;
             background-color: #fff;
         }
         
         #preview-window-container {
             display: none;
-            width: 100%;
+            width: 50%;
             flex-direction: column;
             margin-bottom: 10px;
+            height: 100%;
         }
         
         #console-window {
@@ -180,6 +183,11 @@
             -webkit-text-size-adjust: none;
         }
         
+        #filename {
+            font-size: 10px;
+            padding: 4px; 
+        }
+        
         #code-container {
             height: 100%;
         }
@@ -192,6 +200,7 @@
             overflow-wrap: normal;
             word-wrap: normal;
             text-shadow: none;
+            font-size: 12px;
         }
         
         #code.wrapped {
@@ -229,15 +238,16 @@
         }
         
         .code-button {
-            width: 90px;
-            height: 70px;
-            font-size: 20px;
+            width: 60px;
+            height: 100%;
+            font-size: 12px;
             background-color: rgba(50, 50, 50, 0.9);
             color: #fff;
             border: none;
             border-radius: 10px;
             cursor: pointer;
             box-shadow: 3px 3px 10px #000;
+            padding: 10px;
         }
         
         .code-button:hover {
@@ -287,6 +297,7 @@
             margin-bottom: 10px;
             gap: 15px;
             position: relative;
+            width: 50%;
         }
         
         .menu-window {
@@ -316,6 +327,7 @@
             width: fit-content;
             padding: 10px;
             cursor: pointer;
+            margin: 5px;
         }
         
         #file-cabinet {
@@ -367,7 +379,7 @@
             align-items: center;
             justify-content: space-evenly;
             width: 100%;
-            padding: 10px 0;
+            padding: 0px 0;
             background-color: #222;
             border: 2px solid #555;
         }
@@ -377,7 +389,7 @@
             min-height: 65px;
             margin: 0;
             padding: 0px;
-            font-size: 20px;
+            font-size: 12px;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             grid-auto-rows: minmax(min-content, max-content);
@@ -386,7 +398,7 @@
         }
         
         #file-list li {
-            padding: 20px;
+            padding: 10px;
             border-bottom: 1px solid #444;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -429,6 +441,15 @@
             justify-content: center;
             align-items: center;
             gap: 10px;
+            padding: 0px;
+        }
+        
+        #side-flex {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
         }
         
         #migration-window {
@@ -437,7 +458,7 @@
             width: 100%;
             max-height: 100%;
             overflow-y: auto;
-            font-size: 15px;
+            font-size: 12px;
             white-space: nowrap;
             pointer-events: none;
             transition: opacity 0.1s ease-in-out;
@@ -453,7 +474,7 @@
             min-height: 65px;
             margin: 0;
             padding: 0px;
-            font-size: 20px;
+            font-size: 12px;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             grid-auto-rows: minmax(min-content, max-content);
@@ -466,7 +487,7 @@
         }
         
         #migration-list li {
-            padding: 20px;
+            padding: 10px;
             border-bottom: 1px solid #444;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -483,8 +504,9 @@
         .vert-resize-handle {
             position: relative;
             width: 100%;
-            min-height: 40px;
+            min-height: 0px;
             background-color: #666;
+            visibility: hidden;
         }
         
         .vert-resize-handle:hover {
@@ -497,7 +519,7 @@
             top: 50%;
             left: 50%;
             width: 70%;
-            height: 10px;
+            height: 0px;
             background-color: #333;
             border-radius: 5px;
             transform: translate(-50%, -50%);
@@ -586,13 +608,12 @@
             </button>
         </div>
     </div>
-    <div id="preview-window-container">
-        <div style="display: flex; flex-direction: row; height: 100%;">
-            <iframe id="preview-window" frameborder="0"></iframe>
-            <div id="console-window"></div>
-        </div>
-        <button id="preview-resize" class="vert-resize-handle"></button>
-    </div>
+    
+    
+        
+    
+  <div id="side-flex">
+    
     <div id="editor-container">
         <div style="position: relative; height: 100%;">
             <div id="code-container">
@@ -630,7 +651,7 @@
                 </div>
                 <ul id="file-list"></ul>
                 <div class="menu-buttons-container">
-                    <h3>Data Migration</h3>
+                    <h1>Data Migration</h1>
                     <div id="data-migration-container">
                         <button id="import-button" class="menu-item bluehover" onclick="importFiles()">Import</button>
                         <button id="export-button" class="menu-item redhover" onclick="exportFiles()">Export</button>
@@ -655,6 +676,18 @@
             <button class="button-large nohover" onclick="previewInNewTab()">Preview in New Tab</button>
         </div>
     </div>
+    
+    
+    <div id="preview-window-container">
+        <div style="display: flex; flex-direction: row; height: 100%;">
+            <iframe id="preview-window" frameborder="0"></iframe>
+            <div id="console-window"></div>
+        </div>
+        <button id="preview-resize" class="vert-resize-handle"></button>
+    </div>
+
+  </div> 
+    
     <script>
         const previewToggle = document.getElementById('preview-toggle');
         const previewToggleButton = document.getElementById('preview-toggle-button');
