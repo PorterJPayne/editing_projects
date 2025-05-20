@@ -603,6 +603,9 @@
             <button id="wrap-toggle-button" class="settings-button nohover">
                 <label><input type="checkbox" id="wrap-toggle"> Wrap Text</label>
             </button>
+            <button id="full-toggle-button" class="settings-button nohover">
+                <label><input type="checkbox" id="full-toggle"> Fullscreen</label>
+            </button>
             <button id="preview-toggle-button" class="settings-button nohover">
                 <label><input type="checkbox" id="preview-toggle"> Preview</label>
             </button>
@@ -1872,6 +1875,20 @@
                 navigator.vibrate(50);
             });
         });
+        
+        document.getElementById("full-toggle-button").addEventListener("click", () => {
+    if (!document.fullscreenElement) {
+        // Enter fullscreen
+        document.documentElement.requestFullscreen().catch((err) => {
+            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+    } else {
+        // Exit fullscreen
+        document.exitFullscreen();
+    }
+});
+
+        
     </script>
 </body>
 </html>
